@@ -1,0 +1,54 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Add User model to schema.prisma
+model User {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz
+  urls      Url[]
+
+  @@map("users")
+}
+
+model Url {
+  id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String     @map("user_id") @db.Uuid
+  alias     String     @unique
+  longUrl   String     @map("long_url")
+  topic     String?
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime   @default(now()) @map("updated_at") @db.Timestamptz
+  analytics Analytics[]
+  user      User       @relation(fields: [userId], references: [id])
+
+  @@map("urls")
+}
+
+model Analytics{
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  urlId     String   @map("url_id") @db.Uuid
+  userAgent String?  @map("user_agent")
+  ipAddress String   @map("ip_address")
+  referrer  String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  url       Url      @relation(fields: [urlId], references: [id])
+
+  @@index([urlId])
+  @@map("analytics")
+}

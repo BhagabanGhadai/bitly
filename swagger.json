@@ -1,0 +1,153 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "URL Shortener API",
+      "version": "1.0.0",
+      "description": "A URL shortener API with analytics"
+    },
+    "servers": [
+      {
+        "url": "{baseUrl}",
+        "description": "API Server",
+        "variables": {
+          "baseUrl": {
+            "default": "http://localhost:3000"
+          }
+        }
+      }
+    ],
+    "paths": {
+      "/api/auth/register": {
+        "post": {
+          "tags": ["Authentication"],
+          "summary": "Register a new user",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRegistration"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "User registered successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/AuthResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/shorten": {
+        "post": {
+          "tags": ["URLs"],
+          "summary": "Create a short URL",
+          "security": [{ "BearerAuth": [] }],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateUrlRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "URL shortened successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/UrlResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "UserRegistration": {
+          "type": "object",
+          "required": ["email", "password"],
+          "properties": {
+            "email": {
+              "type": "string",
+              "format": "email"
+            },
+            "password": {
+              "type": "string",
+              "minLength": 6
+            }
+          }
+        },
+        "AuthResponse": {
+          "type": "object",
+          "properties": {
+            "token": {
+              "type": "string"
+            },
+            "user": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "CreateUrlRequest": {
+          "type": "object",
+          "required": ["longUrl"],
+          "properties": {
+            "longUrl": {
+              "type": "string",
+              "format": "uri"
+            },
+            "customAlias": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 20
+            },
+            "topic": {
+              "type": "string",
+              "enum": ["acquisition", "activation", "retention"]
+            }
+          }
+        },
+        "UrlResponse": {
+          "type": "object",
+          "properties": {
+            "shortUrl": {
+              "type": "string"
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        }
+      },
+      "securitySchemes": {
+        "BearerAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT"
+        }
+      }
+    }
+  }
